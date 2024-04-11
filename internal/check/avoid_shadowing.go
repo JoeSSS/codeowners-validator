@@ -71,34 +71,34 @@ func endWithSlash(s string) string {
 
 // wildCardToRegexp converts a wildcard pattern to a regular expression pattern.
 func wildCardToRegexp(pattern string) (*regexp.Regexp, error) {
-    var result strings.Builder
-    var end string
+        var result strings.Builder
+        var end string
 
-    // Check if pattern ends with "/"
-    if strings.HasSuffix(pattern, "/") {
-        // If so, add ".*" to match anything within the directory
-        end = ".*"
-    } else if strings.HasSuffix(pattern, "/**") {
-        // Check if pattern ends with "/**"
-        // If so, replace with "/.*" to match anything recursively within the directory
-        pattern = strings.TrimSuffix(pattern, "/**")
-        end = "/.*"
-    }
-
-    for i, literal := range strings.Split(pattern, "*") {
-        // Replace * with .*
-        if i > 0 {
-            result.WriteString(".*")
+        // Check if pattern ends with "/"
+        if strings.HasSuffix(pattern, "/") {
+            // If so, add ".*" to match anything within the directory
+            end = ".*"
+        } else if strings.HasSuffix(pattern, "/**") {
+            // Check if pattern ends with "/**"
+            // If so, replace with "/.*" to match anything recursively within the directory
+            pattern = strings.TrimSuffix(pattern, "/**")
+            end = "/.*"
         }
 
-        // Quote any regular expression meta characters in the
-        // literal text.
-        result.WriteString(regexp.QuoteMeta(literal))
-    }
+        for i, literal := range strings.Split(pattern, "*") {
+            // Replace * with .*
+            if i > 0 {
+                result.WriteString(".*")
+            }
 
-    // Append the ending (if any) to the result
-    result.WriteString(regexp.QuoteMeta(end))
+            // Quote any regular expression meta characters in the
+            // literal text.
+            result.WriteString(regexp.QuoteMeta(literal))
+        }
 
-    // Compile the regular expression
-    return regexp.Compile("^" + result.String() + "$")
+        // Append the ending (if any) to the result
+        result.WriteString(regexp.QuoteMeta(end))
+
+        // Compile the regular expression
+        return regexp.Compile("^" + result.String() + "$")
 }
