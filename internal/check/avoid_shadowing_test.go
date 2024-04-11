@@ -27,8 +27,6 @@ func TestAvoidShadowing(t *testing.T) {
 					/s*          @s3
 					/b*          @s4
 					/b*/logs     @s5
-                    /dir/        @s6
-                    /dir/**      @s7
 
 					# OK
 					/b*/other    @o1
@@ -72,25 +70,44 @@ Entries should go from least-specific to most-specific.`,
             * 2: "/build/logs/"
 Entries should go from least-specific to most-specific.`,
 				},
-                {
-                    Severity: check.Error,
-                    LineNo:   ptr.Uint64Ptr(11),
-                    Message: `Pattern "/dir/" shadows the following patterns:
-            * 8: "/dir/**"
-Entries should go from least-specific to most-specific.`,
-                },
-                {
-                    Severity: check.Error,
-                    LineNo:   ptr.Uint64Ptr(12),
-                    Message: `Pattern "/dir/**" shadows the following patterns:
-            * 8: "/dir/"
-Entries should go from least-specific to most-specific.`,
-                },
 			},
 		},
 		"Should not report any issues with correct CODEOWNERS file": {
 			codeownersInput: FixtureValidCODEOWNERS,
 			expectedIssues:  nil,
+		},
+		"Should support paths ending with /": {
+			codeownersInput: `
+					/dir/ @user1
+					/file1 @user2
+					/file2 @user3
+			`,
+			expectedIssues: []check.Issue{
+				{
+					Severity: check.Error,
+					LineNo:   ptr.Uint64Ptr(4),
+					Message: `Pattern "/dir/" shadows the following patterns:
+            * 5: "/file1"
+            * 6: "/file2"
+Entries should go from least-specific to most-specific.`,
+				},
+			},
+		},
+		"Should support paths ending with /**": {
+			codeownersInput: `
+					/dir/** @user1
+					/file1 @user2
+					/dir/file2 @user3
+			`,
+			expectedIssues: []check.Issue{
+				{
+					Severity: check.Error,
+					LineNo:   ptr.Uint64Ptr(4),
+					Message: `Pattern "/dir/**" shadows the following patterns:
+            * 5: "/file1"
+Entries should go from least-specific to most-specific.`,
+				},
+			},
 		},
 	}
 
