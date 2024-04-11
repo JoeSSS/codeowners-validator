@@ -71,16 +71,34 @@ func endWithSlash(s string) string {
 
 // wildCardToRegexp converts a wildcard pattern to a regular expression pattern.
 func wildCardToRegexp(pattern string) (*regexp.Regexp, error) {
-	var result strings.Builder
-	for i, literal := range strings.Split(pattern, "*") {
-		// Replace * with .*
-		if i > 0 {
-			result.WriteString(".*")
-		}
+    var result strings.Builder
+    var end string
 
-		// Quote any regular expression meta characters in the
-		// literal text.
-		result.WriteString(regexp.QuoteMeta(literal))
-	}
-	return regexp.Compile("^" + result.String() + "$")
+    // Check if pattern ends with "/"
+    if strings.HasSuffix(pattern, "/") {
+        // If so, add ".*" to match anything within the directory
+        end = ".*"
+    } else if strings.HasSuffix(pattern, "/**") {
+        // Check if pattern ends with "/**"
+        // If so, replace with "/.*" to match anything recursively within the directory
+        pattern = strings.TrimSuffix(pattern, "/**")
+        end = "/.*"
+    }
+
+    for i, literal := range strings.Split(pattern, "*") {
+        // Replace * with .*
+        if i > 0 {
+            result.WriteString(".*")
+        }
+
+        // Quote any regular expression meta characters in the
+        // literal text.
+        result.WriteString(regexp.QuoteMeta(literal))
+    }
+
+    // Append the ending (if any) to the result
+    result.WriteString(regexp.QuoteMeta(end))
+
+    // Compile the regular expression
+    return regexp.Compile("^" + result.String() + "$")
 }
